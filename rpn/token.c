@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 #include "token_types.h"
+#include "token_list.h"
 
 #define skip_white(n) while (isblank (*(n))) (n)++
 
@@ -54,53 +55,35 @@ char *trim(char *string) {
   return new;
 }
 
-Token *tokenize(char *buffer) {
-  // calloc is generally equal to "count"*size and is a bare helper
-  Token *tokens = calloc(129, sizeof(Token));
-  size_t csz = 128; // we allocate for 1 more so there is always room for the "END" token
-  int count = 0;
+Token *newToken() {
+  return memset(malloc(sizeof(Token)), 0, sizeof(Token));
+}
+
+TokenList *tokenize(char *buffer) {
+  TokenList *rv = newTokenList();
+  
   char *token = trim(strtok(buffer, " "));
   
   while(token != NULL) {
+    Token *w = newToken();
     if(isdigit(token[0])) {
-      Token k;
-      k.type = NUMBER;
-      k.value = atoi(token);
-      tokens[count++] = k;
+      w->type = NUMBER;
+      w->value = atoi(token);
     } else if(is_operator(token)) {
-      Token l;
-      l.type = OPERATOR;
-      l.operator = token[0];
-      tokens[count++] = l;
+      w->type = OPERATOR;
+      w->operator = token[0];
     } else {
-      Token e;
-      e.type = UNKNOWN;
-      tokens[count++] = e;
+      w->type = UNKNOWN;
     }
     
-    if(count == csz) {
-      size_t t = csz * 2;
-      Token *new_allocation = calloc(t+1, sizeof(Token));
-      bcopy(tokens, new_allocation, csz);
-      free(tokens);
-      tokens = new_allocation;
-      csz = t;
-    }
-
+    push_token(w, rv);
     token = trim(strtok(NULL, " "));
   }
 
-  Token end;
-  end.type = END;
-  if((count + 1) > (csz+1)) {  
-      size_t t2 = csz * 2;
-      Token *new_allocation2 = calloc(t2+1, sizeof(Token));
-      bcopy(tokens, new_allocation2, csz);
-      free(tokens);
-      tokens = new_allocation2;
-      csz = t2;
-  }
-  
-  tokens[count++] = end;   
-  return tokens;
+  Token *end = newToken();
+  end->type = END;
+  push_token(end, rv);
+
+  return rv;
 }
+

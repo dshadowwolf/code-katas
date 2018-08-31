@@ -4,9 +4,44 @@
 #include <string.h>
 #include "stack.h"
 #include "token_types.h"
+#include "token_list.h"
 
 stack_t *stack;
-extern Token *tokenize(char *);
+extern TokenList *tokenize(char *);
+
+int char_is_oper(char pos) {
+  switch(pos) {
+  case '+':
+  case '-':
+  case '/':
+  case '*':
+  case '%':
+  case '^':
+    return 1;
+  default:
+    return 0;
+  }
+
+  return 0;
+}
+
+char *trim_ws(char *str) {
+  char *s = str;
+  int len = 0;
+  
+  while(isdigit(*s) || *s == ' ' || char_is_oper(*s)) {
+    len++;
+    s++;
+  }
+  
+  size_t asz = sizeof(char)*(len+1);
+  size_t csz = sizeof(char)*len;
+  
+  char *buff = memset(malloc(asz), 0, asz);
+  buff = strncpy(buff, str, csz);
+
+  return buff;
+}
 
 int *get_top() {
   int *top_two = malloc(sizeof(int)*2);
@@ -47,27 +82,26 @@ void do_operation(char oper) {
 }
 
 void parse_line(char *buffer) {
-  char *temp = buffer;
-  char *buff;
-  Token *tokens = tokenize(temp);
-  int i = 0;
-
-  while(tokens[i].type != END) {
-    Token token = tokens[i++];
-
-    if(token.type == OPERATOR) {
-      temp++;
-      if(*temp == token.operator) temp++;
-      do_operation(token.operator);
-    } else if(token.type == NUMBER) {
-      sprintf(buff, "%u", token.value);
-      temp += strlen(buff);
-      push(token.value, stack);
+  TokenList *tokens = tokenize(buffer);
+  
+  Token *work = pop_token(tokens);
+  
+  while(work->type != END && tokens != NULL) {
+    if(work->type == OPERATOR) {
+      do_operation(work->operator);
+    } else if(work->type == NUMBER) {
+      push(work->value, stack);
     }
+
+    TokenList *t = tokens->next;
+    if(t != NULL) {
+      work = t->current;
+    }
+    tokens = t;
   }
 
   int result = pop(stack);
-  printf("\nresult is: %d\n", result);
+  printf("\n%d\n", result);
 }
 
 int main(int argc, char *argv[], char *envp[]) {
@@ -81,7 +115,7 @@ int main(int argc, char *argv[], char *envp[]) {
     
     if(strncmp(line_buffer, "quit", sizeof(char)*4)==0) exit(0);
 
-    parse_line(line_buffer);
+    parse_line(trim_ws(line_buffer));
     memset(line_buffer, 0, buffsz);
   }
 }

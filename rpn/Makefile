@@ -1,12 +1,12 @@
-objects = stack.o token.o rpn.o
+objects = stack.o token_list.o token.o rpn.o
 CC=gcc
 RM=rm
 
 .c.o:
-	$(CC) -c -o $@ $<
+	$(CC) -O0 -ggdb -c -o $@ $<
 
 all: $(objects)
-	$(CC) -o rpn $(objects)
+	$(CC) -O0 -ggdb -o rpn $(objects)
 
 clean:
-	rm $(objects) rpn.exe *~
+	rm -f $(objects) rpn.exe *~
