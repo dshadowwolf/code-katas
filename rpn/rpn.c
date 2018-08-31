@@ -94,6 +94,8 @@ void parse_line(char *buffer) {
     }
 
     TokenList *t = tokens->next;
+    free(work);
+    free(tokens);
     if(t != NULL) {
       work = t->current;
     }
