@@ -72,9 +72,13 @@ char *handle_singles(int input) {
 }
 
 char *to_roman(int input) {
+  if(input > 3000) return "";
+  
   return handle_singles(input);
 }
 
+/*
+ * this was added for testing of the arabic->roman code
 int main(int argc, char *argv[]) {
   if(argc == 1) {
     printf("usage: to_roman <value> [<value>...]\n");
@@ -84,11 +88,9 @@ int main(int argc, char *argv[]) {
   for(int j = 1; j < argc; j++) {
     int pv = atoi(argv[j]);
     char *arg = argv[j];
-    if(pv > 3000)
-      printf("%s is greater than 3000, the max that we can properly represent in this program.\n", arg);
-    else
-      printf("%s is %s in roman numerals\n", arg, to_roman(pv));
+    printf("%s is %s in roman numerals\n", arg, to_roman(pv));
   }
   
   return 0;
 }
+*/
